@@ -8,16 +8,18 @@
     <div class="row">
       <div class="col-md-12">
         <formulario-usuario @alta-usuario='postUsuario' />
-        <tabla-usuarios :usuarios="usuarios" @eliminarusuario="deleteUsuario" @editar-usuario="editarusuario"
-          @cancelar-edicion="cancelaredicion" @actualizarusuario="putusuario" />
+        <tabla-usuarios :usuarios="usuarios" :clients="clients" @eliminarusuario="deleteUsuario"
+          @editar-usuario="editarusuario" @cancelar-edicion="cancelaredicion" @actualizarusuario="putusuario" />
       </div>
     </div>
   </div>
 </template>
 
+
 <script>
 import TablaUsuarios from '@/components/TablaUsuarios.vue';
 import FormularioUsuario from '@/components/FormularioUsuario.vue';
+import clients from '@/clients.json';
 
 export default {
   name: 'app',
@@ -28,28 +30,37 @@ export default {
   data() {
     return {
       usuarios: [],
+      clients: clients,
     }
   },
   methods: {
     async postUsuario(usuario) {
+      console.log('Enviando usuario al servidor:', usuario);
       try {
         const response = await fetch('http://localhost:3000/usuarios', {
-        method: 'POST',
-        body: JSON.stringify(usuario),
-        headers: { 'Content-type': 'application/json; charset = UTF-8' },
-      });
-      const usuarioAlta = await response.json();
-      this.usuarios = [...this.usuarios, usuarioAlta];
-      } catch(error){
+          method: 'POST',
+          body: JSON.stringify(usuario),
+          headers: { 'Content-type': 'application/json; charset = UTF-8' },
+        });
+        if (!response.ok) {
+          throw new Error('Error al enviar usuario al servidor: ' + response.statusText);
+        }
+        const usuarioAlta = await response.json();
+        this.usuarios = [...this.usuarios, usuarioAlta];
+        console.log('Usuario dado de alta correctamente:', usuarioAlta);
+      } catch (error) {
         console.log(error);
+        // Aquí puedes mostrar un mensaje de error al usuario
       }
     },
     async getUsuarios() {
+      console.log('Recuperando usuarios del servidor...');
       try {
         const response = await fetch('http://localhost:3000/usuarios');
         this.usuarios = await response.json();
+        console.log('Usuarios recuperados correctamente:', this.usuarios); // Agrega este console.log para ver los usuarios recuperados del servidor
       } catch (error) {
-        console.log('Error en getUsuarios.', error);
+        console.log('Error al recuperar usuarios del servidor:', error);
       }
     },
     async deleteUsuario(usuario) {
